@@ -1,0 +1,46 @@
+﻿@page "/"
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<button @onclick="(async()=> await click())"></button>
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+<textarea @bind="Text"></textarea>
+
+@code
+{
+    public string Text { get; set; } = string.Empty;
+
+    [Inject]
+    public IHttpHelper http { get; set; }
+
+    [Inject]
+    public IMediator mediator { get; set; }
+
+    [Inject]
+    public IMapper mapper { get; set; }
+
+
+    private async Task click()
+    {
+        try
+        {
+            YahooFinanceUriHelper yahoo = new YahooFinanceUriHelper("AZUL");
+            DataResponse obj = await http.Get<DataResponse>(yahoo.Url);
+            var quote = obj.quoteResponse.result.FirstOrDefault();
+
+            var createYahooQuote =  mapper.Map<CreateYahooQuoteCommand>(quote);
+
+            Text = await mediator.Send(createYahooQuote);
+        }
+        catch (Exception ex)
+        {
+            Text = ex.Message;
+            throw;
+        }
+        
+    }    
+}
